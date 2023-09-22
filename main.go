@@ -139,22 +139,24 @@ func main() {
 				}
 
 				// Agent node
-				_, err = ec2_classic.NewInstance(ctx, "test_agent_node", &ec2_classic.InstanceArgs{
-					Ami:                     pulumi.String(RKE2_AMI_ID),
-					InstanceType:            pulumi.String("c5.xlarge"),
-					UserDataReplaceOnChange: pulumi.Bool(true),
-					UserData:                pulumi.String(getUserData(ip, "true", rke2JoinToken, DEFAULT_USER, "cluster.foo.bar")),
-					SubnetId:                pulumi.String(ids[0]),
-					KeyName:                 keyPair.KeyName,
-					VpcSecurityGroupIds:     pulumi.StringArray{securityGroup.ID()},
-					RootBlockDevice: ec2_classic.InstanceRootBlockDeviceArgs{
-						VolumeSize: pulumi.Int(100),
-					},
-					Tags: pulumi.StringMap{
-						"Name": pulumi.String("dash-days-agent-node"),
-					},
-				})
-
+				numAgentNodes := 3
+				for i := 0; i < numAgentNodes; i++ {
+					_, err = ec2_classic.NewInstance(ctx, fmt.Sprintf("test_agent_node-%d", i+1), &ec2_classic.InstanceArgs{
+						Ami:                     pulumi.String(RKE2_AMI_ID),
+						InstanceType:            pulumi.String("c5.xlarge"),
+						UserDataReplaceOnChange: pulumi.Bool(true),
+						UserData:                pulumi.String(getUserData(ip, "true", rke2JoinToken, DEFAULT_USER, "cluster.foo.bar")),
+						SubnetId:                pulumi.String(ids[0]),
+						KeyName:                 keyPair.KeyName,
+						VpcSecurityGroupIds:     pulumi.StringArray{securityGroup.ID()},
+						RootBlockDevice: ec2_classic.InstanceRootBlockDeviceArgs{
+							VolumeSize: pulumi.Int(100),
+						},
+						Tags: pulumi.StringMap{
+							"Name": pulumi.String(fmt.Sprintf("dash-days-agent-node-%d", i+1)),
+						},
+					})
+				}
 				return err
 			})
 			return err
