@@ -10,7 +10,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-const RKE2_AMI_ID = "ami-0bb262a4b5d64ce94"
+const RKE2_AMI_ID = "ami-0a9d663e4ed8a4827"
 const DEFAULT_USER = "ubuntu"
 
 func main() {
@@ -30,6 +30,8 @@ func main() {
 			f, _ := os.Create("private.pem")
 			defer f.Close()
 
+			f.Truncate(0)
+			f.Seek(0, 0)
 			_, err := f.WriteString(pem)
 
 			return err
@@ -116,7 +118,7 @@ func main() {
 			// Once the bootstrap node's IP is available, we can deploy the other nodes.
 			bootstrapNode.PrivateIp.ApplyT(func(ip string) error {
 				// Generate some control plane nodes
-				numCpNodes := 2
+				numCpNodes := 3
 				for i := 0; i < numCpNodes; i++ {
 					_, err = ec2_classic.NewInstance(ctx, fmt.Sprintf("control_plane_node-%d", i+1), &ec2_classic.InstanceArgs{
 						Ami:                     pulumi.String(RKE2_AMI_ID),
